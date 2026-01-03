@@ -1,0 +1,6 @@
+node_modules
+.expo
+.git
+.git_disabled
+dist
+web-build
