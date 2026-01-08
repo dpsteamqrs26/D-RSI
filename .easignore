@@ -4,3 +4,4 @@ node_modules
 .git_disabled
 dist
 web-build
+android

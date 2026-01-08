@@ -22,10 +22,13 @@ export function SignUpForm() {
   const emailInputRef = React.useRef<TextInput>(null);
   const passwordInputRef = React.useRef<TextInput>(null);
   
-  const [error, setError] = React.useState<{ email?: string; password?: string }>({});
+  const [error, setError] = React.useState<{ email?: string; password?: string; general?: string }>({});
 
   async function onSubmit() {
     if (!isLoaded) return;
+    
+    // Clear previous errors
+    setError({});
 
     try {
       // Start sign-up process
@@ -47,18 +50,29 @@ export function SignUpForm() {
       });
 
     } catch (err: any) {
-      // Basic Clerk error handling
-      if (err && err.errors) {
+      console.error('Sign-up error:', err);
+      
+      // Clerk error handling
+      if (err && err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
         const firstError = err.errors[0];
-        const message = firstError.longMessage || firstError.message;
+        const message = firstError.longMessage || firstError.message || 'An error occurred';
         
         if (message.toLowerCase().includes('email') || message.toLowerCase().includes('identifier')) {
           setError({ email: message });
-        } else {
+        } else if (message.toLowerCase().includes('password')) {
           setError({ password: message });
+        } else {
+          setError({ general: message });
         }
+      } else if (err?.message) {
+        // Handle standard Error objects
+        setError({ general: err.message });
+      } else if (typeof err === 'string') {
+        // Handle string errors
+        setError({ general: err });
       } else {
-        console.error(JSON.stringify(err, null, 2));
+        // Fallback for unknown error types
+        setError({ general: 'Something went wrong. Please try again.' });
       }
     }
   }
@@ -157,6 +171,12 @@ export function SignUpForm() {
                 <Text className="text-sm font-medium text-destructive">{error.password}</Text>
               ) : null}
             </View>
+
+            {error.general ? (
+              <View className="rounded-md bg-destructive/10 p-3">
+                <Text className="text-sm font-medium text-destructive">{error.general}</Text>
+              </View>
+            ) : null}
 
             <Button className="w-full" onPress={onSubmit}>
               <Text>Continue</Text>

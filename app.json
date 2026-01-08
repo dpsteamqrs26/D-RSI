@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "D-RSI",
-    "slug": "D-RSI",
+    "slug": "QRS26",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -69,7 +69,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "9f20e679-808f-4ab8-a4ad-8672c180b387"
+        "projectId": "2ee953ec-511b-4546-825c-9ca0bc08fbc4"
       }
     },
     "owner": "achyutpaliwal"

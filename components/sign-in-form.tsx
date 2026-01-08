@@ -15,12 +15,15 @@ export function SignInForm() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const passwordInputRef = React.useRef<TextInput>(null);
-  const [error, setError] = React.useState<{ email?: string; password?: string }>({});
+  const [error, setError] = React.useState<{ email?: string; password?: string; general?: string }>({});
 
   async function onSubmit() {
     if (!isLoaded) {
       return;
     }
+
+    // Clear previous errors
+    setError({});
 
     // Start the sign-in process using the email and password provided
     try {
@@ -32,35 +35,63 @@ export function SignInForm() {
       // If sign-in process is complete, set the created session as active
       // and redirect the user
       if (signInAttempt.status === 'complete') {
-        setError({ email: '', password: '' });
         await setActive({ session: signInAttempt.createdSessionId });
         return;
       }
-      // TODO: Handle other statuses
-      console.error(JSON.stringify(signInAttempt, null, 2));
+      // Handle other statuses with a user-friendly message
+      console.error('Sign-in status:', signInAttempt.status);
+      setError({ general: 'Sign-in incomplete. Please try again or contact support.' });
     } catch (err: any) {
-      // See https://go.clerk.com/mRUDrIe for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      console.error('Sign-in error:', err);
 
-      if (err.errors && err.errors.length > 0) {
+      // Clerk error handling
+      if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
         const firstError = err.errors[0];
-        const message = firstError.longMessage || firstError.message;
+        const message = firstError.longMessage || firstError.message || 'An error occurred';
+        
+        // Check if user registered via SSO/social media and is trying to use email/password
+        // Clerk error codes for SSO-only accounts or password not set
+        const ssoRelatedCodes = [
+          'form_password_incorrect',
+          'strategy_for_user_invalid', 
+          'external_account_not_found',
+          'form_password_not_set'
+        ];
+        
+        const isSSOAccount = ssoRelatedCodes.includes(firstError.code) || 
+          message.toLowerCase().includes('password has not been set') ||
+          message.toLowerCase().includes('external account') ||
+          message.toLowerCase().includes('oauth') ||
+          message.toLowerCase().includes('social');
         
         if (firstError.code === 'form_identifier_not_found') {
           setError({ email: message });
-        } else if (firstError.code === 'form_password_incorrect') {
-          setError({ password: message });
+        } else if (firstError.code === 'form_password_incorrect' || firstError.code === 'strategy_for_user_invalid' || firstError.code === 'form_password_not_set') {
+          // Show a helpful message for users who may have registered via social media
+          setError({ 
+            general: 'Sign-in failed. If you registered using Google, Apple, or another social account, please use the sign-in options below instead of email and password.' 
+          });
+        } else if (message.toLowerCase().includes('email') || message.toLowerCase().includes('identifier')) {
+          setError({ email: message });
+        } else if (message.toLowerCase().includes('password')) {
+          // Also check for SSO-related password errors
+          setError({ 
+            general: 'Sign-in failed. If you registered using Google, Apple, or another social account, please use the sign-in options below instead of email and password.' 
+          });
         } else {
-           // Generic fallback for other errors
-           setError({ email: message, password: '' });
+          setError({ general: message });
         }
         return;
       }
       
-      if (err instanceof Error) {
-        // Fallback for non-Clerk errors
-         setError({ email: err.message });
+      // Handle standard Error objects
+      if (err?.message) {
+        setError({ general: err.message });
+        return;
       }
+      
+      // Fallback for unknown error types
+      setError({ general: 'Something went wrong. Please try again.' });
     }
   }
 
@@ -126,6 +157,13 @@ export function SignInForm() {
                 <Text className="text-sm font-medium text-destructive">{error.password}</Text>
               ) : null}
             </View>
+
+            {error.general ? (
+              <View className="rounded-md bg-destructive/10 p-3">
+                <Text className="text-sm font-medium text-destructive">{error.general}</Text>
+              </View>
+            ) : null}
+
             <Button className="w-full" onPress={onSubmit}>
               <Text>Continue</Text>
             </Button>
