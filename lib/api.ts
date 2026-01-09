@@ -8,6 +8,10 @@ export function getBaseUrl(): string {
     // Replace with your actual IP address
     const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
     if (debuggerHost) {
+      // If we're using an Expo tunnel, the port is handled by the proxy
+      if (debuggerHost.includes('exp.direct')) {
+        return `https://${debuggerHost}`;
+      }
       return `http://${debuggerHost}:8081`;
     }
     

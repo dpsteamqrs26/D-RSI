@@ -13,6 +13,7 @@ import {
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { getBaseUrl } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Course {
   id: number;
@@ -67,6 +68,7 @@ export default function CoursesScreen() {
   const [completedLessonIds, setCompletedLessonIds] = useState<number[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessonLoading, setLessonLoading] = useState(false);
+  const { t, isRTL, language } = useLanguage();
 
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'achyutkpaliwal@gmail.com' ||
     user?.primaryEmailAddress?.emailAddress === 'dpsteamqrs26@gmail.com' ||
@@ -158,7 +160,7 @@ export default function CoursesScreen() {
       if (data.success) {
         setCompletedLessonIds(prev => [...prev, selectedLesson.id]);
         if (data.xpEarned) {
-          Alert.alert('🎉 Lesson Complete!', `You earned ${data.xpEarned} XP!\nTotal XP: ${data.totalXp}`);
+          Alert.alert(`🎉 ${t('lessonCompleted')}`, t('xpEarned').replace('{xp}', data.xpEarned.toString()) + `\n` + t('totalXPInfo').replace('{xp}', data.totalXp.toString()));
         }
         setSelectedLesson(null);
         loadCourses(); // Refresh progress
@@ -173,7 +175,12 @@ export default function CoursesScreen() {
   };
 
   const getLevelColor = (level: string) => {
-    return LEVEL_COLORS[level as keyof typeof LEVEL_COLORS] || LEVEL_COLORS.RED;
+    const defaultColor = LEVEL_COLORS.RED;
+    const config = LEVEL_COLORS[level as keyof typeof LEVEL_COLORS] || defaultColor;
+    return {
+      ...config,
+      label: level === 'RED' ? t('beginner') : level === 'YELLOW' ? t('intermediate') : t('advanced')
+    };
   };
 
   const currentLevel = userData?.currentLevel || 'RED';
@@ -191,27 +198,27 @@ export default function CoursesScreen() {
     <View className="flex-1 bg-gray-50">
       {/* Header with Level Badge */}
       <View className="bg-white border-b border-gray-200 pt-12 pb-4 px-4">
-        <View className="flex-row justify-between items-center">
+        <View className={`flex-row justify-between items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
           <View>
-            <Text className="text-2xl font-bold text-gray-900">Courses</Text>
-            <Text className="text-sm text-gray-500">Learn road safety step by step</Text>
+            <Text className={`text-2xl font-bold text-gray-900 ${isRTL ? 'text-right' : ''}`}>{t('courses')}</Text>
+            <Text className={`text-sm text-gray-500 ${isRTL ? 'text-right' : ''}`}>{t('learnRoadSafety')}</Text>
           </View>
           
           {/* Level Badge */}
           <View 
-            className="px-4 py-2 rounded-full flex-row items-center"
+            className={`px-4 py-2 rounded-full flex-row items-center ${isRTL ? 'flex-row-reverse' : ''}`}
             style={{ backgroundColor: levelColor.bg, borderWidth: 2, borderColor: levelColor.border }}
           >
             <View 
-              className="w-3 h-3 rounded-full mr-2"
+              className={`w-3 h-3 rounded-full ${isRTL ? 'ml-2' : 'mr-2'}`}
               style={{ backgroundColor: levelColor.border }}
             />
             <View>
-              <Text className="text-xs font-bold" style={{ color: levelColor.text }}>
+              <Text className={`text-xs font-bold ${isRTL ? 'text-right' : ''}`} style={{ color: levelColor.text }}>
                 {levelColor.label}
               </Text>
-              <Text className="text-xs" style={{ color: levelColor.text }}>
-                {userData?.xp || 0} XP
+              <Text className={`text-xs ${isRTL ? 'text-right' : ''}`} style={{ color: levelColor.text }}>
+                {t('totalXPInfo').replace('{xp}', (userData?.xp || 0).toString())}
               </Text>
             </View>
           </View>
@@ -219,11 +226,11 @@ export default function CoursesScreen() {
 
         {/* Progress Bar for Next Level */}
         <View className="mt-4">
-          <View className="flex-row justify-between mb-1">
-            <Text className="text-xs text-gray-500">Progress to next level</Text>
+          <View className={`flex-row justify-between mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Text className="text-xs text-gray-500">{t('progressToNextLevel')}</Text>
             <Text className="text-xs text-gray-500">
-              {currentLevel === 'RED' ? `${userData?.xp || 0}/500 XP` :
-               currentLevel === 'YELLOW' ? `${userData?.xp || 0}/1500 XP` : 'Max Level!'}
+              {currentLevel === 'RED' ? t('totalXPInfo').replace('{xp}', `${userData?.xp || 0}/500`) :
+               currentLevel === 'YELLOW' ? t('totalXPInfo').replace('{xp}', `${userData?.xp || 0}/1500`) : t('maxLevel')}
             </Text>
           </View>
           <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -246,7 +253,7 @@ export default function CoursesScreen() {
             className="mt-4 bg-blue-600 py-3 rounded-xl items-center"
             onPress={() => router.push('/create-course' as any)}
           >
-            <Text className="text-white font-bold">+ Create New Course</Text>
+            <Text className="text-white font-bold">+ {t('createNewCourse')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -258,9 +265,9 @@ export default function CoursesScreen() {
       >
         {courses.length === 0 ? (
           <View className="flex-1 justify-center items-center py-16">
-            <Text className="text-xl font-bold text-gray-600 mb-2">No Courses Yet</Text>
+            <Text className="text-xl font-bold text-gray-600 mb-2">{t('noCoursesYet')}</Text>
             <Text className="text-gray-400 text-center">
-              {isAdmin ? 'Create your first course to get started!' : 'Check back soon for new courses.'}
+              {isAdmin ? t('adminNoCourses') : t('userNoCourses')}
             </Text>
           </View>
         ) : (
@@ -287,14 +294,14 @@ export default function CoursesScreen() {
                   >
                     <View 
                       className={`p-5 rounded-2xl border-2 ${isCompleted ? 'bg-green-50' : 'bg-white'}`}
-                      style={{ borderColor: isCompleted ? '#10B981' : courseLevel.border }}
+                      style={{ borderColor: isCompleted ? '#10B981' : courseLevel.border, flexDirection: isRTL ? 'row-reverse' : 'row' }}
                     >
                       {/* Course Header */}
-                      <View className="flex-row justify-between items-start mb-2">
-                        <View className="flex-1 mr-3">
-                          <Text className="text-lg font-bold text-gray-900">{course.title}</Text>
+                      <View className={`flex-row justify-between items-start mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <View className={`flex-1 ${isRTL ? 'ml-3' : 'mr-3'}`}>
+                          <Text className={`text-lg font-bold text-gray-900 ${isRTL ? 'text-right' : ''}`}>{course.title}</Text>
                           {course.description && (
-                            <Text className="text-sm text-gray-500 mt-1" numberOfLines={2}>
+                            <Text className={`text-sm text-gray-500 mt-1 ${isRTL ? 'text-right' : ''}`} numberOfLines={2}>
                               {course.description}
                             </Text>
                           )}
@@ -312,16 +319,16 @@ export default function CoursesScreen() {
                       </View>
 
                       {/* Progress & XP */}
-                      <View className="flex-row justify-between items-center mt-3">
-                        <View className="flex-1 mr-3">
+                      <View className={`flex-row justify-between items-center mt-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <View className={`flex-1 ${isRTL ? 'ml-3' : 'mr-3'}`}>
                           <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
                             <View 
                               className="h-full bg-blue-500 rounded-full"
                               style={{ width: `${progressPercent}%` }}
                             />
                           </View>
-                          <Text className="text-xs text-gray-500 mt-1">
-                            {progress ? `${progress.completedLessons}/${progress.totalLessons} lessons` : 'Not started'}
+                          <Text className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : ''}`}>
+                            {progress ? `${progress.completedLessons}/${progress.totalLessons} ${t('lessons')}` : t('done')}
                           </Text>
                         </View>
                         
@@ -334,7 +341,7 @@ export default function CoursesScreen() {
 
                       {/* Completion Check */}
                       {isCompleted && (
-                        <View className="absolute top-3 right-3 bg-green-500 w-6 h-6 rounded-full items-center justify-center">
+                        <View className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} bg-green-500 w-6 h-6 rounded-full items-center justify-center`}>
                           <Text className="text-white text-sm">✓</Text>
                         </View>
                       )}
@@ -357,12 +364,12 @@ export default function CoursesScreen() {
             className="pt-12 pb-4 px-4"
             style={{ backgroundColor: getLevelColor(selectedCourse?.levelRequirement || 'RED').bg }}
           >
-            <TouchableOpacity onPress={() => setSelectedCourse(null)} className="mb-4">
-              <Text className="text-blue-600 font-bold text-lg">← Back</Text>
+            <TouchableOpacity onPress={() => setSelectedCourse(null)} className={`mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <Text className="text-blue-600 font-bold text-lg">{isRTL ? '←' : '←'} {t('back')}</Text>
             </TouchableOpacity>
-            <Text className="text-2xl font-bold text-gray-900">{selectedCourse?.title}</Text>
+            <Text className={`text-2xl font-bold text-gray-900 ${isRTL ? 'text-right' : ''}`}>{selectedCourse?.title}</Text>
             {selectedCourse?.description && (
-              <Text className="text-gray-600 mt-2">{selectedCourse.description}</Text>
+              <Text className={`text-gray-600 mt-2 ${isRTL ? 'text-right' : ''}`}>{selectedCourse.description}</Text>
             )}
           </View>
 
@@ -384,11 +391,11 @@ export default function CoursesScreen() {
                       onPress={() => setSelectedLesson(lesson)}
                       className={`p-4 rounded-xl border-2 flex-row items-center ${
                         isLessonCompleted ? 'bg-green-50 border-green-400' : 'bg-white border-gray-200'
-                      }`}
+                      } ${isRTL ? 'flex-row-reverse' : ''}`}
                     >
                       {/* Lesson Number Circle */}
                       <View 
-                        className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
+                        className={`w-10 h-10 rounded-full items-center justify-center ${isRTL ? 'ml-4' : 'mr-4'} ${
                           isLessonCompleted ? 'bg-green-500' : 'bg-blue-500'
                         }`}
                       >
@@ -402,15 +409,15 @@ export default function CoursesScreen() {
                       <View className="flex-1">
                         <Text className={`text-base font-semibold ${
                           isLessonCompleted ? 'text-green-800' : 'text-gray-900'
-                        }`}>
+                        } ${isRTL ? 'text-right' : ''}`}>
                           {lesson.title}
                         </Text>
-                        <Text className="text-xs text-gray-500 mt-1">
+                        <Text className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : ''}`}>
                           +{lesson.xpReward} XP
                         </Text>
                       </View>
 
-                      <Text className="text-blue-500 font-bold">→</Text>
+                      <Text className="text-blue-500 font-bold">{isRTL ? '←' : '→'}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -424,11 +431,11 @@ export default function CoursesScreen() {
       <Modal visible={!!selectedLesson} animationType="fade">
         <View className="flex-1 bg-white">
           <View className="bg-blue-600 pt-12 pb-4 px-4">
-            <TouchableOpacity onPress={() => setSelectedLesson(null)} className="mb-4">
-              <Text className="text-white font-bold text-lg">← Back to Course</Text>
+            <TouchableOpacity onPress={() => setSelectedLesson(null)} className={`mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <Text className="text-white font-bold text-lg">{isRTL ? '→' : '←'} {t('backToCourse')}</Text>
             </TouchableOpacity>
-            <Text className="text-2xl font-bold text-white">{selectedLesson?.title}</Text>
-            <View className="flex-row items-center mt-2">
+            <Text className={`text-2xl font-bold text-white ${isRTL ? 'text-right' : ''}`}>{selectedLesson?.title}</Text>
+            <View className={`flex-row items-center mt-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <View className="bg-yellow-400 px-2 py-1 rounded-lg">
                 <Text className="text-xs font-bold text-yellow-900">
                   +{selectedLesson?.xpReward} XP
@@ -438,7 +445,7 @@ export default function CoursesScreen() {
           </View>
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-base text-gray-800 leading-7">
+            <Text className={`text-base text-gray-800 leading-7 ${isRTL ? 'text-right' : ''}`}>
               {selectedLesson?.content}
             </Text>
           </ScrollView>
@@ -450,7 +457,7 @@ export default function CoursesScreen() {
                 onPress={completeLesson}
                 className="bg-green-500 py-4 rounded-xl items-center"
               >
-                <Text className="text-white font-bold text-lg">Complete Lesson ✓</Text>
+                <Text className="text-white font-bold text-lg">{t('completeLesson')} ✓</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -458,7 +465,7 @@ export default function CoursesScreen() {
           {selectedLesson && completedLessonIds.includes(selectedLesson.id) && (
             <View className="p-4 bg-green-50">
               <Text className="text-center text-green-700 font-bold">
-                ✓ Lesson Completed!
+                ✓ {t('lessonCompleted')}
               </Text>
             </View>
           )}

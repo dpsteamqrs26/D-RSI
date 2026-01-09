@@ -16,6 +16,7 @@ import * as Location from 'expo-location';
 import * as Linking from 'expo-linking';
 import MapView, { Marker, PROVIDER_GOOGLE, Circle, Callout, Polyline } from 'react-native-maps';
 import { useSearchState } from '@/context/SearchContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   MapPin, 
   Navigation, 
@@ -135,6 +136,8 @@ export default function SearchScreen() {
     clearRoute,
   } = useSearchState();
 
+  const { t, isRTL } = useLanguage();
+
   // Local state (not persisted)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [vehicles, setVehicles] = useState<SimulatedVehicle[]>([]);
@@ -151,14 +154,14 @@ export default function SearchScreen() {
       setPermissionStatus(status);
       
       if (status !== 'granted') {
-        setError('Permission to access location was denied.');
+        setError(t('locationText'));
         if (!canAskAgain) {
           Alert.alert(
-            'Location Required',
-            'Location permission is permanently denied. Please enable it in your device settings to see your accurate position.',
+            t('locationRequired'),
+            t('locationText'),
             [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Open Settings', onPress: () => Linking.openSettings() }
+              { text: t('cancel'), style: 'cancel' },
+              { text: t('openSettings'), onPress: () => Linking.openSettings() }
             ]
           );
         }
@@ -297,11 +300,11 @@ export default function SearchScreen() {
           });
         }
       } else {
-        Alert.alert('Route Error', 'Could not find a route to this destination.');
+        Alert.alert(t('error'), 'Could not find a route to this destination.');
       }
     } catch (err) {
       console.error('Route calculation error:', err);
-      Alert.alert('Route Error', 'Failed to calculate route. Please try again.');
+      Alert.alert(t('error'), 'Failed to calculate route. Please try again.');
     } finally {
       setIsCalculatingRoute(false);
     }
@@ -468,7 +471,7 @@ export default function SearchScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Getting Accurate GPS Lock...</Text>
+        <Text style={styles.loadingText}>{t('gpsLock')}</Text>
       </View>
     );
   }
@@ -477,15 +480,15 @@ export default function SearchScreen() {
     return (
       <View style={styles.permissionContainer}>
         <MapPin size={64} color="#FF3B30" />
-        <Text style={styles.permissionTitle}>Location Access Required</Text>
+        <Text style={styles.permissionTitle}>{t('locationRequired')}</Text>
         <Text style={styles.permissionText}>
-          {error || 'We need your location to show you on the map and provide accurate directions.'}
+          {error || t('locationText')}
         </Text>
         <TouchableOpacity 
           style={styles.permissionButton}
           onPress={requestLocationPermission}
         >
-          <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          <Text style={styles.permissionButtonText}>{t('continueBtn')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -567,7 +570,7 @@ export default function SearchScreen() {
             </View>
             <Callout>
               <View style={styles.callout}>
-                <Text style={styles.calloutTitle}>Traffic Incident</Text>
+                <Text style={styles.calloutTitle}>{t('liveTraffic')}</Text>
                 <Text style={styles.calloutText}>{incident.description}</Text>
               </View>
             </Callout>
@@ -590,11 +593,11 @@ export default function SearchScreen() {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, isRTL && { flexDirection: 'row-reverse' }]}>
           <Search size={20} color="#666" style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Search for a place..."
+            style={[styles.searchInput, isRTL && { textAlign: 'right' }]}
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChangeText={searchPlaces}
             placeholderTextColor="#999"
@@ -613,15 +616,15 @@ export default function SearchScreen() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity 
-                  style={styles.resultItem}
+                  style={[styles.resultItem, isRTL && { flexDirection: 'row-reverse' }]}
                   onPress={() => selectDestination(item)}
                 >
                   <MapPin size={18} color="#007AFF" />
-                  <View style={styles.resultTextContainer}>
-                    <Text style={styles.resultName}>{item.name}</Text>
-                    <Text style={styles.resultAddress} numberOfLines={1}>{item.address}</Text>
+                  <View style={[styles.resultTextContainer, isRTL ? { marginRight: 12 } : { marginLeft: 12 }]}>
+                    <Text style={[styles.resultName, isRTL && { textAlign: 'right' }]}>{item.name}</Text>
+                    <Text style={[styles.resultAddress, isRTL && { textAlign: 'right' }]} numberOfLines={1}>{item.address}</Text>
                   </View>
-                  <ChevronRight size={18} color="#ccc" />
+                  <ChevronRight size={18} color="#ccc" style={isRTL && { transform: [{ rotate: '180deg' }] }} />
                 </TouchableOpacity>
               )}
             />
@@ -630,7 +633,7 @@ export default function SearchScreen() {
       </View>
 
       {/* Layer Toggles */}
-      <View style={styles.layerContainer}>
+      <View style={[styles.layerContainer, isRTL ? { left: 20 } : { right: 20 }]}>
         <TouchableOpacity 
           style={[styles.layerButton, showTraffic && styles.layerButtonActive]}
           onPress={() => setShowTraffic(!showTraffic)}
@@ -653,7 +656,7 @@ export default function SearchScreen() {
 
       {/* Overlay UI */}
       <View style={styles.overlay}>
-        <View style={styles.actionButtons}>
+        <View style={[styles.actionButtons, isRTL ? { left: 20 } : { right: 20 }]}>
           {destination && (
             <TouchableOpacity 
               style={styles.navButton}
@@ -677,13 +680,15 @@ export default function SearchScreen() {
         <View style={styles.infoCard}>
           {routeInfo ? (
             <>
-              <View style={styles.routeHeader}>
+              <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Route size={24} color="#007AFF" />
-                <Text style={styles.routeTitle} numberOfLines={1}>Route to {destination?.name}</Text>
+                <Text style={[styles.routeTitle, isRTL && { textAlign: 'right', marginRight: 10 }]} numberOfLines={1}>
+                  {isRTL ? 'الطريق إلى' : 'Route to'} {destination?.name}
+                </Text>
               </View>
-              <View style={styles.routeInfoContainer}>
+              <View style={[styles.routeInfoContainer, isRTL && { flexDirection: 'row-reverse' }]}>
                 <View style={styles.routeItem}>
-                  <Text style={styles.routeLabel}>DISTANCE</Text>
+                  <Text style={styles.routeLabel}>{t('distance')}</Text>
                   <Text style={styles.routeValue}>{routeInfo.distance.toFixed(1)} km</Text>
                 </View>
                 <View style={styles.routeItem}>
@@ -691,9 +696,9 @@ export default function SearchScreen() {
                   <Text style={styles.routeTimeValue}>{formatDuration(routeInfo.duration)}</Text>
                 </View>
                 <View style={styles.routeItem}>
-                  <Text style={styles.routeLabel}>MODE</Text>
+                  <Text style={styles.routeLabel}>{t('mode')}</Text>
                   <Text style={styles.routeValue}>
-                    {transportMode === 'car' ? '🚗 Car' : transportMode === 'bicycle' ? '🚲 Bike' : '🚶 Walk'}
+                    {transportMode === 'car' ? `🚗 ${t('car')}` : transportMode === 'bicycle' ? `🚲 ${t('bike')}` : `🚶 ${t('walking')}`}
                   </Text>
                 </View>
               </View>
@@ -701,31 +706,31 @@ export default function SearchScreen() {
                 style={styles.changeRouteButton}
                 onPress={() => setShowTransportModal(true)}
               >
-                <Text style={styles.changeRouteText}>Change Transport Mode</Text>
+                <Text style={styles.changeRouteText}>{t('changeTransportMode')}</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Navigation size={20} color="#007AFF" />
-                <Text style={styles.infoTitle}>Live GPS Data</Text>
+                <Text style={[styles.infoTitle, isRTL && { textAlign: 'right', flex: 1, marginRight: 8 }]}>{t('liveGpsData')}</Text>
                 <View style={styles.liveBadge}>
                   <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>ACTIVE</Text>
+                  <Text style={styles.liveText}>{t('active').toUpperCase()}</Text>
                 </View>
               </View>
-              <View style={styles.coordsContainer}>
+              <View style={[styles.coordsContainer, isRTL && { flexDirection: 'row-reverse' }]}>
                 <View style={styles.coordItem}>
-                  <Text style={styles.coordLabel}>LATITUDE</Text>
+                  <Text style={styles.coordLabel}>{t('latitude')}</Text>
                   <Text style={styles.coordValue}>{location?.coords.latitude.toFixed(6) || '---'}</Text>
                 </View>
                 <View style={styles.coordItem}>
-                  <Text style={styles.coordLabel}>LONGITUDE</Text>
+                  <Text style={styles.coordLabel}>{t('longitude')}</Text>
                   <Text style={styles.coordValue}>{location?.coords.longitude.toFixed(6) || '---'}</Text>
                 </View>
               </View>
-              <View style={styles.accuracyRow}>
-                <Text style={styles.accuracyLabel}>Accuracy:</Text>
+              <View style={[styles.accuracyRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={[styles.accuracyLabel, isRTL && { marginLeft: 5 }]}>{t('accuracy')}:</Text>
                 <Text style={[
                   styles.accuracyValue,
                   (location?.coords.accuracy || 100) < 20 ? styles.accuracyGood : styles.accuracyPoor
@@ -748,43 +753,43 @@ export default function SearchScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Transport Mode</Text>
-            <Text style={styles.modalSubtitle}>Select how you want to travel to {destination?.name}</Text>
-            <View style={styles.modeContainer}>
+            <Text style={styles.modalTitle}>{t('chooseTransportMode')}</Text>
+            <Text style={styles.modalSubtitle}>{t('selectTravelMethod').replace('{destination}', destination?.name || '')}</Text>
+            <View style={[styles.modeContainer, isRTL && { flexDirection: 'row-reverse' }]}>
               <TouchableOpacity 
                 style={[styles.modeButton, transportMode === 'car' && styles.modeButtonActive]}
                 onPress={() => calculateRoute('car')}
               >
                 <Car size={32} color={transportMode === 'car' ? '#fff' : '#007AFF'} />
-                <Text style={[styles.modeText, transportMode === 'car' && styles.modeTextActive]}>Car</Text>
+                <Text style={[styles.modeText, transportMode === 'car' && styles.modeTextActive]}>{t('car')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modeButton, transportMode === 'bicycle' && styles.modeButtonActive]}
                 onPress={() => calculateRoute('bicycle')}
               >
                 <Bike size={32} color={transportMode === 'bicycle' ? '#fff' : '#007AFF'} />
-                <Text style={[styles.modeText, transportMode === 'bicycle' && styles.modeTextActive]}>Bike</Text>
+                <Text style={[styles.modeText, transportMode === 'bicycle' && styles.modeTextActive]}>{t('bike')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modeButton, transportMode === 'bicycle' && styles.modeButtonActive]}
                 onPress={() => calculateRoute('bicycle')}
               >
                 <Zap size={32} color={transportMode === 'bicycle' ? '#fff' : '#007AFF'} />
-                <Text style={[styles.modeText, transportMode === 'bicycle' && styles.modeTextActive]}>E-Scooter</Text>
+                <Text style={[styles.modeText, transportMode === 'bicycle' && styles.modeTextActive]}>{t('escooter')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modeButton, transportMode === 'pedestrian' && styles.modeButtonActive]}
                 onPress={() => calculateRoute('pedestrian')}
               >
                 <Footprints size={32} color={transportMode === 'pedestrian' ? '#fff' : '#007AFF'} />
-                <Text style={[styles.modeText, transportMode === 'pedestrian' && styles.modeTextActive]}>Walking</Text>
+                <Text style={[styles.modeText, transportMode === 'pedestrian' && styles.modeTextActive]}>{t('walking')}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity 
               style={styles.closeModalButton}
               onPress={() => setShowTransportModal(false)}
             >
-              <Text style={styles.closeModalText}>Cancel</Text>
+              <Text style={styles.closeModalText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

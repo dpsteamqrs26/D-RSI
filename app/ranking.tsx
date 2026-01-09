@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { getBaseUrl } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface UserRanking {
   userId: string;
@@ -27,6 +28,7 @@ export default function RankingScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>('');
+  const { t, isRTL } = useLanguage();
 
   useEffect(() => {
     loadRankings();
@@ -145,7 +147,7 @@ export default function RankingScreen() {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50">
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text className="text-gray-600 mt-4">Loading rankings...</Text>
+        <Text className="text-gray-600 mt-4">{t('fetchingRankings')}</Text>
         {debugInfo && (
           <Text className="text-xs text-gray-400 mt-2 px-4 text-center">
             {debugInfo}
@@ -166,16 +168,16 @@ export default function RankingScreen() {
         {/* Error Display */}
         {error && (
           <View className="bg-red-50 p-4 rounded-xl border border-red-200 mb-4">
-            <Text className="text-red-900 font-bold text-base mb-2">
-              ⚠️ Error Loading Rankings
+            <Text className={`text-red-900 font-bold text-base mb-2 ${isRTL ? 'text-right' : ''}`}>
+              ⚠️ {t('errorLoadingRankings')}
             </Text>
-            <Text className="text-red-800 text-sm mb-3">{error}</Text>
+            <Text className={`text-red-800 text-sm mb-3 ${isRTL ? 'text-right' : ''}`}>{error}</Text>
             <TouchableOpacity
               onPress={loadRankings}
               className="bg-red-600 p-3 rounded-lg"
             >
               <Text className="text-white text-center font-semibold">
-                Retry
+                {t('retry')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -197,10 +199,10 @@ export default function RankingScreen() {
             <View className="p-8 items-center">
               <Text className="text-6xl mb-4">📝</Text>
               <Text className="text-gray-900 font-bold text-lg mb-2">
-                No Rankings Yet
+                {t('noRankingsYet')}
               </Text>
               <Text className="text-gray-500 text-center">
-                Be the first to answer questions correctly and claim the top spot!
+                {t('claimTopSpot')}
               </Text>
             </View>
           ) : (
@@ -212,7 +214,7 @@ export default function RankingScreen() {
                   key={ranker.userId}
                   className={`flex-row items-center p-3 ${
                     index < topRankers.length - 1 ? 'border-b border-gray-100' : ''
-                  }`}
+                  } ${isRTL ? 'flex-row-reverse' : ''}`}
                   style={
                     ranker.rank === 1
                       ? { backgroundColor: '#FFF9E6' }
@@ -237,7 +239,7 @@ export default function RankingScreen() {
                   </View>
 
                   {/* Profile Picture */}
-                  <View className="ml-2">
+                  <View className={isRTL ? 'mr-2' : 'ml-2'}>
                     {ranker.imageUrl ? (
                       <Image
                         source={{ uri: ranker.imageUrl }}
@@ -254,22 +256,22 @@ export default function RankingScreen() {
                   </View>
 
                   {/* User Info */}
-                  <View className="flex-1 ml-3">
+                  <View className={`flex-1 ${isRTL ? 'mr-3' : 'ml-3'}`}>
                     <Text
-                      className="font-semibold text-base text-gray-900"
+                      className={`font-semibold text-base text-gray-900 ${isRTL ? 'text-right' : ''}`}
                       numberOfLines={1}
                     >
-                      {ranker.userName || 'Anonymous'}
+                      {ranker.userName || (isRTL ? 'مجهول' : 'Anonymous')}
                     </Text>
                   </View>
 
                   {/* Correct Answers Count */}
-                  <View className="bg-green-100 px-3 py-2 rounded-lg ml-2">
+                  <View className={`bg-green-100 px-3 py-2 rounded-lg ${isRTL ? 'mr-2' : 'ml-2'}`}>
                     <Text className="text-green-900 font-bold text-lg text-center">
                       {ranker.totalCorrectAnswers}
                     </Text>
                     <Text className="text-green-700 text-xs text-center">
-                      correct
+                      {t('correctCount')}
                     </Text>
                   </View>
                 </View>
@@ -281,7 +283,7 @@ export default function RankingScreen() {
         {/* Pull to Refresh Hint */}
         <View className="mt-4 p-3 bg-gray-100 rounded-xl">
           <Text className="text-gray-600 text-xs text-center">
-            💡 Pull down to refresh rankings
+            💡 {t('pullToRefresh')}
           </Text>
         </View>
       </ScrollView>

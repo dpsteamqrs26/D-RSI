@@ -4,6 +4,7 @@ import { AppFooter } from '@/components/app-footer';
 import { NAV_THEME } from '@/lib/theme';
 import { SearchProvider } from '@/context/SearchContext';
 import { QuizProvider } from '@/context/QuizContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import { ClerkProvider, ClerkLoaded, useAuth, useUser } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import { ThemeProvider } from '@react-navigation/native';
@@ -53,15 +54,17 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
-        <SearchProvider>
-          <QuizProvider>
-            <ThemeProvider value={NAV_THEME.light}>
-              <StatusBar style="dark" />
-              <Routes />
-              <PortalHost />
-            </ThemeProvider>
-          </QuizProvider>
-        </SearchProvider>
+        <LanguageProvider>
+          <SearchProvider>
+            <QuizProvider>
+              <ThemeProvider value={NAV_THEME.light}>
+                <StatusBar style="dark" />
+                <Routes />
+                <PortalHost />
+              </ThemeProvider>
+            </QuizProvider>
+          </SearchProvider>
+        </LanguageProvider>
       </ClerkLoaded>
     </ClerkProvider>
   );

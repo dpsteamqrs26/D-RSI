@@ -22,16 +22,18 @@ export async function GET(request: Request) {
     console.log('Fetching user rankings...');
 
     // Get all users with their correct answer counts
+    // Order by: 1) Most correct answers, 2) Earliest submission time (tie-breaker)
     const allUserRankings = await db
       .select({
         userId: correctAnswers.userId,
         userName: correctAnswers.userName,
         userEmail: correctAnswers.userEmail,
         totalCorrectAnswers: sql<number>`cast(count(*) as integer)`,
+        earliestAnswer: sql<Date>`MIN(${correctAnswers.answeredAt})`,
       })
       .from(correctAnswers)
       .groupBy(correctAnswers.userId, correctAnswers.userName, correctAnswers.userEmail)
-      .orderBy(sql`count(*) DESC`);
+      .orderBy(sql`count(*) DESC`, sql`MIN(${correctAnswers.answeredAt}) ASC`);
 
     // Return ALL rankers instead of just top 6
     const topRankers = allUserRankings.map((user, index) => ({
