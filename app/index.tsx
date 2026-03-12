@@ -85,7 +85,7 @@ export default function HomeScreen() {
 
   // System instruction prompts for training the AI model
   const systemInstruction = `
-You are D-RSI Assistant, a helpful and friendly AI assistant for the D-RSI navigation app.
+You are Wayyat Assistant, a helpful and friendly AI assistant for the Wayyat navigation app.
 Your primary role is to help users with:
 - Navigation and route planning questions
 - Road safety information and tips

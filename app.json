@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "D-RSI",
+    "name": "Wayyat",
     "slug": "QRS26",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "D-RSI",
+    "scheme": "Wayyat",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {

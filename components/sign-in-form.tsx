@@ -109,7 +109,7 @@ export function SignInForm() {
           />
         </View>
         <CardHeader className="pt-0">
-          <CardTitle className="text-center text-xl sm:text-left">Sign in to D-RSI</CardTitle>
+          <CardTitle className="text-center text-xl sm:text-left">Sign in to Wayyat</CardTitle>
           <CardDescription className="text-center sm:text-left">
             Welcome back! Please sign in to continue
           </CardDescription>

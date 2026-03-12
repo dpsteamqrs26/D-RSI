@@ -58,7 +58,7 @@ export const translations = {
     askMeAnything: 'Ask me anything',
     startConversation: 'Start a conversation with AI',
     typeMessage: 'Type a message...',
-    welcomeMessageAI: 'Welcome {name}! 👋 I\'m your D-RSI Assistant. How can I help you today? You can ask me about navigation, road safety tips, or anything about the app!',
+    welcomeMessageAI: 'Welcome {name}! 👋 I\'m your Wayyat Assistant. How can I help you today? You can ask me about navigation, road safety tips, or anything about the app!',
     errorMessageAI: 'Sorry, I encountered an error. Please try again.',
     
     // Footer Navigation
@@ -207,7 +207,7 @@ export const translations = {
     askMeAnything: 'اسألني أي شيء',
     startConversation: 'ابدأ محادثة مع الذكاء الاصطناعي',
     typeMessage: 'اكتب رسالة...',
-    welcomeMessageAI: 'مرحباً {name}! 👋 أنا مساعد D-RSI الخاص بك. كيف يمكنني مساعدتك اليوم؟ يمكنك سؤالي عن التنقل، نصائح السلامة على الطرق، أو أي شيء يخص التطبيق!',
+    welcomeMessageAI: 'مرحباً {name}! 👋 أنا مساعد Wayyat الخاص بك. كيف يمكنني مساعدتك اليوم؟ يمكنك سؤالي عن التنقل، نصائح السلامة على الطرق، أو أي شيء يخص التطبيق!',
     errorMessageAI: 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.',
     
     // Footer Navigation

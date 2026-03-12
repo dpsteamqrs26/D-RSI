@@ -100,7 +100,7 @@ export function SignUpForm() {
         </View>
         
         <CardHeader>
-          <CardTitle className="text-center text-xl sm:text-left">Create D-RSI account</CardTitle>
+          <CardTitle className="text-center text-xl sm:text-left">Create Wayyat account</CardTitle>
           <CardDescription className="text-center sm:text-left">
             Welcome! Please fill in the details to get started.
           </CardDescription>
