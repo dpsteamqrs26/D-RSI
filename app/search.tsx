@@ -14,7 +14,22 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as Linking from 'expo-linking';
-import MapView, { Marker, PROVIDER_GOOGLE, Circle, Callout, Polyline } from 'react-native-maps';
+let MapView: any = View;
+let Marker: any = View;
+let Circle: any = View;
+let Callout: any = View;
+let Polyline: any = View;
+let PROVIDER_GOOGLE: any = undefined;
+
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+  Circle = Maps.Circle;
+  Callout = Maps.Callout;
+  Polyline = Maps.Polyline;
+  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
+}
 import { useSearchState } from '@/context/SearchContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
@@ -112,7 +127,7 @@ export default function SearchScreen() {
   const [permissionStatus, setPermissionStatus] = useState<Location.PermissionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
 
   // Use global state from context
@@ -781,7 +796,7 @@ export default function SearchScreen() {
                 style={[styles.modeButton, transportMode === 'pedestrian' && styles.modeButtonActive]}
                 onPress={() => calculateRoute('pedestrian')}
               >
-                <Footprints size={32} color={transportMode === 'pedestrian' ? '#fff' : '#007AFF'} />
+                 <Footprints size={32} color={transportMode === 'pedestrian' ? '#fff' : '#007AFF'} />
                 <Text style={[styles.modeText, transportMode === 'pedestrian' && styles.modeTextActive]}>{t('walking')}</Text>
               </TouchableOpacity>
             </View>
