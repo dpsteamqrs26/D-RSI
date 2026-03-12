@@ -9,7 +9,8 @@
     "ios": "expo start -c --ios",
     "web": "expo start -c --web",
     "clean": "rm -rf .expo node_modules",
-    "dev:server": "ts-node-dev --respawn --transpile-only server/index.ts"
+    "dev:server": "ts-node-dev --respawn --transpile-only server/index.ts",
+    "sync-users": "ts-node scripts/sync-users.ts"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.14",
